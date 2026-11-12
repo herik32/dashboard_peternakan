@@ -1,0 +1,8 @@
+{
+  "name": "Dashboard Statistik Peternakan Kalimantan Barat",
+  "description": "Prototipe interaktif visualisasi statistik peternakan Provinsi Kalimantan Barat dengan filter multidimensi, kartu indikator, grafik tren, perbandingan wilayah, komposisi, narasi otomatis, dan validasi data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
