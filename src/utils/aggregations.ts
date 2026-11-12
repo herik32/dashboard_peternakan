@@ -355,16 +355,24 @@ export function getCompositionData(
   records: LivestockRecord[],
   filters: FilterState
 ): {
+  populasiComposition: CompositionItem[];
+  pemotonganComposition: CompositionItem[];
   meatComposition: CompositionItem[];
   eggComposition: CompositionItem[];
+  totalPopulasi: number;
+  totalPemotongan: number;
   totalMeat: number;
   totalEgg: number;
   selectedLivestock: string;
 } {
   if (records.length === 0) {
     return {
+      populasiComposition: [],
+      pemotonganComposition: [],
       meatComposition: [],
       eggComposition: [],
+      totalPopulasi: 0,
+      totalPemotongan: 0,
       totalMeat: 0,
       totalEgg: 0,
       selectedLivestock: filters.jenisTernak,
@@ -384,12 +392,19 @@ export function getCompositionData(
     'Semua Jenis'
   );
 
-  // Agregasi Daging per jenis ternak
+  // Agregasi per jenis ternak
+  const populasiBySpecies = new Map<string, number>();
+  const pemotonganBySpecies = new Map<string, number>();
   const meatBySpecies = new Map<string, number>();
-  // Agregasi Telur per jenis ternak
   const eggBySpecies = new Map<string, number>();
 
   for (const r of matching) {
+    const curPop = populasiBySpecies.get(r.jenisTernak) ?? 0;
+    populasiBySpecies.set(r.jenisTernak, curPop + r.populasi);
+
+    const curPot = pemotonganBySpecies.get(r.jenisTernak) ?? 0;
+    pemotonganBySpecies.set(r.jenisTernak, curPot + r.pemotongan);
+
     const curMeat = meatBySpecies.get(r.jenisTernak) ?? 0;
     meatBySpecies.set(r.jenisTernak, curMeat + r.produksiDaging);
 
@@ -399,34 +414,36 @@ export function getCompositionData(
     }
   }
 
+  const totalPopulasi = Array.from(populasiBySpecies.values()).reduce((a, b) => a + b, 0);
+  const totalPemotongan = Array.from(pemotonganBySpecies.values()).reduce((a, b) => a + b, 0);
   const totalMeat = Array.from(meatBySpecies.values()).reduce((a, b) => a + b, 0);
   const totalEgg = Array.from(eggBySpecies.values()).reduce((a, b) => a + b, 0);
 
-  const meatComposition: CompositionItem[] = Array.from(meatBySpecies.entries())
-    .map(([jenisTernak, value]) => ({
-      jenisTernak,
-      value,
-      percentage: totalMeat > 0 ? (value / totalMeat) * 100 : 0,
-      isSelected:
-        !isAllLivestock(filters.jenisTernak) &&
-        filters.jenisTernak.toLowerCase() === jenisTernak.toLowerCase(),
-    }))
-    .sort((a, b) => b.value - a.value);
+  const createCompositionList = (map: Map<string, number>, total: number): CompositionItem[] => {
+    return Array.from(map.entries())
+      .map(([jenisTernak, value]) => ({
+        jenisTernak,
+        value,
+        percentage: total > 0 ? (value / total) * 100 : 0,
+        isSelected:
+          !isAllLivestock(filters.jenisTernak) &&
+          filters.jenisTernak.toLowerCase() === jenisTernak.toLowerCase(),
+      }))
+      .sort((a, b) => b.value - a.value);
+  };
 
-  const eggComposition: CompositionItem[] = Array.from(eggBySpecies.entries())
-    .map(([jenisTernak, value]) => ({
-      jenisTernak,
-      value,
-      percentage: totalEgg > 0 ? (value / totalEgg) * 100 : 0,
-      isSelected:
-        !isAllLivestock(filters.jenisTernak) &&
-        filters.jenisTernak.toLowerCase() === jenisTernak.toLowerCase(),
-    }))
-    .sort((a, b) => b.value - a.value);
+  const populasiComposition = createCompositionList(populasiBySpecies, totalPopulasi);
+  const pemotonganComposition = createCompositionList(pemotonganBySpecies, totalPemotongan);
+  const meatComposition = createCompositionList(meatBySpecies, totalMeat);
+  const eggComposition = createCompositionList(eggBySpecies, totalEgg);
 
   return {
+    populasiComposition,
+    pemotonganComposition,
     meatComposition,
     eggComposition,
+    totalPopulasi,
+    totalPemotongan,
     totalMeat,
     totalEgg,
     selectedLivestock: filters.jenisTernak,

@@ -110,30 +110,29 @@ export function generateRegionalNarrative(
  * Filter tidak berlaku: Jenis Ternak.
  */
 export function generateCompositionNarrative(
-  meatComposition: CompositionItem[],
-  eggComposition: CompositionItem[],
+  items: CompositionItem[],
+  metricTitle: string,
+  unit: string,
   filters: FilterState
 ): string {
   const yearLabel =
     filters.tahun === 'Semua' ? 'tahun berjalan' : `tahun ${filters.tahun}`;
 
-  if (meatComposition.length === 0 || meatComposition.every((m) => m.value === 0)) {
-    return `Data tidak cukup untuk menyimpulkan tren. Tidak ada data produksi pada ${filters.kabupatenKota} untuk ${yearLabel}. Komposisi seluruh jenis ternak tidak dipengaruhi filter jenis ternak.`;
+  if (items.length === 0 || items.every((m) => m.value === 0)) {
+    return `Data tidak cukup untuk menyimpulkan komposisi. Tidak ada data ${metricTitle.toLowerCase()} pada ${filters.kabupatenKota} untuk ${yearLabel}. Komposisi seluruh jenis ternak tidak dipengaruhi filter jenis ternak.`;
   }
 
-  const topMeat = meatComposition[0];
-  const topMeatValStr = formatIdNumber(topMeat.value);
-  const topMeatPctStr = formatIdPercent(topMeat.percentage);
+  const topItem = items[0];
+  const topValStr = formatIdNumber(topItem.value);
+  const topPctStr = formatIdPercent(topItem.percentage);
 
-  let eggSentence = '';
-  if (eggComposition.length > 0 && eggComposition[0].value > 0) {
-    const topEgg = eggComposition[0];
-    const topEggValStr = formatIdNumber(topEgg.value);
-    const topEggPctStr = formatIdPercent(topEgg.percentage);
-    eggSentence = ` Produksi telur didominasi ${topEgg.jenisTernak} sebesar ${topEggValStr} kg (${topEggPctStr}).`;
+  let runnerUpSentence = '';
+  if (items.length > 1 && items[1].value > 0) {
+    const runnerUp = items[1];
+    runnerUpSentence = `, diikuti ${runnerUp.jenisTernak} sebesar ${formatIdNumber(runnerUp.value)} ${unit} (${formatIdPercent(runnerUp.percentage)})`;
   }
 
-  const text = `Pada ${filters.kabupatenKota} ${yearLabel}, produksi daging didominasi ${topMeat.jenisTernak} sebesar ${topMeatValStr} kg (${topMeatPctStr}).${eggSentence} Komposisi seluruh jenis ternak tidak dipengaruhi filter jenis ternak.`;
+  const text = `Pada ${filters.kabupatenKota} ${yearLabel}, ${metricTitle.toLowerCase()} didominasi ${topItem.jenisTernak} sebesar ${topValStr} ${unit} (${topPctStr})${runnerUpSentence}. Komposisi seluruh jenis ternak tidak dipengaruhi filter jenis ternak.`;
 
   return text;
 }
