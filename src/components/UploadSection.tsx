@@ -132,9 +132,13 @@ export const UploadSection: React.FC<UploadSectionProps> = ({
             </h3>
           </div>
           <p className="text-xs text-slate-600 mt-0.5">
-            Kelola data aktif di memori: kosongkan data, unggah CSV baru (timpa atau gabung), atau unduh templat data.
+            Kelola data aktif: kosongkan data, unggah CSV baru (timpa atau gabung), atau unduh templat data.
             Saat ini terdapat <strong className="text-emerald-900">{currentRecordCount} baris aktif</strong>.
           </p>
+          <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-800 font-medium bg-emerald-50/80 px-2.5 py-1 rounded-md border border-emerald-200/80 w-fit">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+            <span>Penyimpanan Lokal Aktif: Data yang Anda unggah/tambahkan tersimpan otomatis dan tidak akan hilang saat halaman disegarkan (refresh).</span>
+          </div>
         </div>
 
         {/* Global Dataset Action Buttons */}

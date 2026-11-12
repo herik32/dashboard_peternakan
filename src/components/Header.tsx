@@ -1,7 +1,6 @@
 import React from 'react';
 import { UserRole, QualityIssue } from '../types/livestock';
 import {
-  Upload,
   UserCheck,
   FileCheck2,
   Info,
@@ -18,7 +17,6 @@ interface HeaderProps {
   latestYear: number | null;
   issues: QualityIssue[];
   onOpenQualityPanel: () => void;
-  onOpenUploadSection: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,7 +27,6 @@ export const Header: React.FC<HeaderProps> = ({
   latestYear,
   issues,
   onOpenQualityPanel,
-  onOpenUploadSection,
 }) => {
   const errorCount = issues.filter((i) => i.severity === 'error').length;
   const warningCount = issues.filter((i) => i.severity === 'warning').length;
@@ -56,15 +53,16 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Brand & Agency Title */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-emerald-800 border border-emerald-700 flex items-center justify-center shrink-0 shadow-inner">
-              <span className="text-xl font-bold tracking-tight text-emerald-200">
-                KB
-              </span>
-            </div>
+          <div className="flex items-center gap-3.5">
+            <img
+              src="/assets/aistudio/Logo_Provinsi_KalBar_8fa6b06e.png"
+              alt="Logo Pemerintah Provinsi Kalimantan Barat"
+              className="h-11 sm:h-12 w-auto object-contain shrink-0 drop-shadow-md"
+            />
             <div>
-              <div className="text-[11px] sm:text-xs uppercase tracking-wider text-emerald-300/90 font-medium">
-                Pemerintah Provinsi Kalimantan Barat • Dinas Perkebunan & Peternakan
+              <div className="text-[11px] sm:text-xs uppercase tracking-wider text-emerald-300/90 font-medium leading-tight">
+                <div>DINAS PERKEBUNAN DAN PETERNAKAN</div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-400/90">PROVINSI KALIMANTAN BARAT</div>
               </div>
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight leading-tight">
                 Dashboard Statistik Peternakan
@@ -74,41 +72,32 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Controls: Role Switcher & Quality Button */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            {/* Quality Button */}
-            <button
-              onClick={onOpenQualityPanel}
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-700/80 text-emerald-100 transition-colors cursor-pointer shadow-sm"
-              title="Buka panel Kualitas Data"
-            >
-              <FileCheck2 className="w-4 h-4 text-emerald-300" />
-              <span>Kualitas Data</span>
-              {errorCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-600 text-white">
-                  {errorCount} Galat
-                </span>
-              )}
-              {errorCount === 0 && warningCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/80 text-emerald-950">
-                  {warningCount} Peringatan
-                </span>
-              )}
-              {errorCount === 0 && warningCount === 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              )}
-            </button>
-
-            {/* If Pengelola and Authenticated, Quick Upload Button */}
-            {role === 'pengelola' && isAuthenticated && (
+            {/* Quality Button - Hanya ditampilkan pada peran Pengelola Data */}
+            {role === 'pengelola' && (
               <button
-                onClick={onOpenUploadSection}
+                onClick={onOpenQualityPanel}
                 type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer shadow-sm border border-emerald-500"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-700/80 text-emerald-100 transition-colors cursor-pointer shadow-sm"
+                title="Buka panel Kualitas Data"
               >
-                <Upload className="w-4 h-4" />
-                <span>Unggah Data CSV</span>
+                <FileCheck2 className="w-4 h-4 text-emerald-300" />
+                <span>Kualitas Data</span>
+                {errorCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-600 text-white">
+                    {errorCount} Galat
+                  </span>
+                )}
+                {errorCount === 0 && warningCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/80 text-emerald-950">
+                    {warningCount} Peringatan
+                  </span>
+                )}
+                {errorCount === 0 && warningCount === 0 && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                )}
               </button>
             )}
+
 
             {/* Role Switcher */}
             <div className="flex items-center bg-emerald-900/90 p-1 rounded-lg border border-emerald-700/70">

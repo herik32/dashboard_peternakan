@@ -25,19 +25,53 @@ import { DataQualityPanel } from './components/DataQualityPanel';
 import { UploadSection } from './components/UploadSection';
 import { LoginModal } from './components/LoginModal';
 export default function App() {
-  // 1. Data Aktif di Memori
-  const [records, setRecords] = useState<LivestockRecord[]>(() =>
-    generateSimulationData()
-  );
+  // 1. Data Aktif di Memori & Penyimpanan Lokal (Persisten saat refresh peramban)
+  const [records, setRecords] = useState<LivestockRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('kalbar_livestock_records');
+        if (saved !== null) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error('Gagal memuat data dari localStorage:', e);
+      }
+    }
+    return generateSimulationData();
+  });
+
+  // Simpan data otomatis ke localStorage setiap kali terjadi perubahan
+  useEffect(() => {
+    try {
+      localStorage.setItem('kalbar_livestock_records', JSON.stringify(records));
+    } catch (e) {
+      console.error('Gagal menyimpan data ke localStorage:', e);
+    }
+  }, [records]);
 
   // 2. Hasil Validasi Kualitas Data
   const [validation, setValidation] = useState<ValidationResult>(() =>
     validateRecords(records)
   );
 
-  // 3. Peran Pengguna & Status Autentikasi
-  const [role, setRole] = useState<UserRole>('pimpinan');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // 3. Peran Pengguna & Status Autentikasi (Persisten selama sesi peramban)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('kalbar_admin_auth') === 'true';
+    }
+    return false;
+  });
+
+  const [role, setRole] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('kalbar_admin_auth') === 'true') {
+      return 'pengelola';
+    }
+    return 'pimpinan';
+  });
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
 
   // 4. Modal / Panel Status
@@ -144,12 +178,18 @@ export default function App() {
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('kalbar_admin_auth', 'true');
+    }
     setRole('pengelola');
     setIsLoginModalOpen(false);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('kalbar_admin_auth');
+    }
     setRole('pimpinan');
   };
 
@@ -241,14 +281,6 @@ export default function App() {
         latestYear={records.length > 0 ? latestYear : null}
         issues={validation.issues}
         onOpenQualityPanel={() => setIsQualityPanelOpen(true)}
-        onOpenUploadSection={() => {
-          if (!isAuthenticated) {
-            setIsLoginModalOpen(true);
-          } else {
-            setRole('pengelola');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
       />
 
       {/* 2. Bar Filter Interaktif (F2) */}
