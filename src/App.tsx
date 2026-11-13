@@ -24,6 +24,7 @@ import { DataTableSection } from './components/DataTableSection';
 import { DataQualityPanel } from './components/DataQualityPanel';
 import { UploadSection } from './components/UploadSection';
 import { LoginModal } from './components/LoginModal';
+import { NaturalLanguageQA } from './components/NaturalLanguageQA';
 export default function App() {
   // 1. Data Aktif di Memori & Penyimpanan Lokal (Persisten saat refresh peramban)
   const [records, setRecords] = useState<LivestockRecord[]>(() => {
@@ -304,6 +305,15 @@ export default function App() {
             currentRecordCount={records.length}
           />
         )}
+
+        {/* Agent Tanya-Jawab Bahasa Alami */}
+        <NaturalLanguageQA
+          records={records}
+          filters={filters}
+          availableYears={availableYears}
+          availableRegions={availableRegions}
+          availableLivestock={availableLivestock}
+        />
 
         {/* 3. Empat Kartu Ringkasan (F3) */}
         <SummaryCards summary={summary} filters={filters} />
