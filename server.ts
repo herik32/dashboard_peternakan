@@ -73,6 +73,15 @@ async function startServer() {
   const app = express();
   app.use(express.json({ limit: '2mb' }));
 
+  // Endpoint konfigurasi Google Maps API Key untuk komponen peta frontend
+  app.get('/api/maps-config', (_req: Request, res: Response) => {
+    const apiKey =
+      process.env.VITE_GOOGLE_MAPS_API_KEY ||
+      process.env.GOOGLE_MAPS_API_KEY ||
+      '';
+    res.json({ apiKey });
+  });
+
   // Endpoint Tanya-Jawab Bahasa Alami Statistik Peternakan Kalbar
   app.post('/api/qa', async (req: Request, res: Response) => {
     try {

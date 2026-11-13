@@ -25,6 +25,7 @@ import { DataQualityPanel } from './components/DataQualityPanel';
 import { UploadSection } from './components/UploadSection';
 import { LoginModal } from './components/LoginModal';
 import { NaturalLanguageQA } from './components/NaturalLanguageQA';
+import { RegionalMapSection } from './components/RegionalMapSection';
 export default function App() {
   // 1. Data Aktif di Memori & Penyimpanan Lokal (Persisten saat refresh peramban)
   const [records, setRecords] = useState<LivestockRecord[]>(() => {
@@ -77,6 +78,15 @@ export default function App() {
 
   // 4. Modal / Panel Status
   const [isQualityPanelOpen, setIsQualityPanelOpen] = useState(false);
+  const [mapsQuotaExceeded, setMapsQuotaExceeded] = useState(false);
+
+  useEffect(() => {
+    const handleQuotaExceeded = () => setMapsQuotaExceeded(true);
+    window.addEventListener('gmp-quota-exceeded', handleQuotaExceeded);
+    return () => {
+      window.removeEventListener('gmp-quota-exceeded', handleQuotaExceeded);
+    };
+  }, []);
 
   // 5. Daftar Pilihan Filter Berdasarkan Data yang Tersedia (Tanpa Opsi Bawaan Hardcoded)
   const availableYears = useMemo(() => {
@@ -103,12 +113,16 @@ export default function App() {
     return list.sort((a, b) => a.localeCompare(b, 'id'));
   }, [records]);
 
-  // 6. State Filter Tunggal (F2)
-  const [filters, setFilters] = useState<FilterState>(() => ({
-    tahun: 2024,
-    kabupatenKota: 'Seluruh Provinsi',
-    jenisTernak: 'Semua Jenis',
-  }));
+  // 6. State Filter Tunggal (F2) - Default ke tahun terbaru sesuai data yang tersedia
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const years = Array.from(new Set(records.map((r) => r.tahun)));
+    const maxYear = years.length > 0 ? Math.max(...years) : 'Semua';
+    return {
+      tahun: maxYear,
+      kabupatenKota: 'Seluruh Provinsi',
+      jenisTernak: 'Semua Jenis',
+    };
+  });
 
   // Sinkronisasi otomatis nilai filter dengan data yang benar-benar tersedia
   useEffect(() => {
@@ -257,10 +271,12 @@ export default function App() {
   const handleResetToSample = () => {
     const sample = generateSimulationData();
     const val = validateRecords(sample);
+    const maxSampleYear =
+      val.yearRange ? val.yearRange[1] : Math.max(...sample.map((r) => r.tahun));
     setRecords(sample);
     setValidation(val);
     setFilters({
-      tahun: 2024,
+      tahun: maxSampleYear,
       kabupatenKota: 'Seluruh Provinsi',
       jenisTernak: 'Semua Jenis',
     });
@@ -273,6 +289,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans antialiased selection:bg-emerald-200 selection:text-emerald-900">
+      {mapsQuotaExceeded && (
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs md:text-sm text-center sticky top-0 z-50 shadow-sm">
+          <span>
+            Google Maps Platform quota reached. If you are the app owner, visit{' '}
+            <a
+              href="https://developers.google.com/maps/ai/ai-studio?utm_campaign=gmp_mcp_codeassist_v1_aistudio#quota_exceeded_errors"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold text-amber-950 hover:text-amber-800"
+            >
+              maps developer site
+            </a>{' '}
+            for instructions to update your account.
+          </span>
+        </div>
+      )}
       {/* 1. Header Aplikasi */}
       <Header
         role={role}
@@ -323,6 +355,15 @@ export default function App() {
 
         {/* 5. Grafik 2: Perbandingan Wilayah (F5) */}
         <RegionComparisonSection records={records} filters={filters} />
+
+        {/* 5b. Peta Interaktif Kewilayahan Kalimantan Barat */}
+        <RegionalMapSection
+          records={records}
+          filters={filters}
+          onSelectRegion={(kab) =>
+            setFilters((prev) => ({ ...prev, kabupatenKota: kab }))
+          }
+        />
 
         {/* 6. Grafik 3: Komposisi Jenis Ternak (F6) */}
         <CompositionSection records={records} filters={filters} />
